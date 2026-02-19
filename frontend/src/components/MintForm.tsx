@@ -1,9 +1,11 @@
 import { useState, useEffect, type FormEvent } from "react";
+import { isAddress } from "viem";
 import { useTokenMint } from "../hooks/useTokenMint";
 
 export default function MintForm() {
   const [to, setTo] = useState("");
   const [amount, setAmount] = useState("");
+  const [validationError, setValidationError] = useState("");
   const { mint, isPending, isConfirming, isSuccess, error } = useTokenMint();
 
   useEffect(() => {
@@ -15,9 +17,22 @@ export default function MintForm() {
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!to || !amount) return;
-    mint(to as `0x${string}`, amount);
+    setValidationError("");
+
+    if (!isAddress(to)) {
+      setValidationError("Invalid address.");
+      return;
+    }
+    const n = Number(amount);
+    if (!amount || isNaN(n) || n <= 0) {
+      setValidationError("Amount must be a positive number.");
+      return;
+    }
+
+    mint(to, amount);
   }
+
+  const displayError = validationError || (error ? error.message.slice(0, 200) : "");
 
   return (
     <div className="bg-gray-800 rounded-xl p-6">
@@ -52,8 +67,8 @@ export default function MintForm() {
       {isSuccess && (
         <p className="text-green-400 text-sm mt-2">Mint successful!</p>
       )}
-      {error && (
-        <p className="text-red-400 text-sm mt-2">{error.message}</p>
+      {displayError && (
+        <p className="text-red-400 text-sm mt-2">{displayError}</p>
       )}
     </div>
   );

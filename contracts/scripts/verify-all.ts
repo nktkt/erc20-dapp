@@ -11,6 +11,7 @@ async function main() {
   console.log("Symbol:      ", await token.symbol());
   console.log("Decimals:    ", await token.decimals());
   console.log("Total Supply:", ethers.formatEther(await token.totalSupply()));
+  console.log("Max Supply:  ", ethers.formatEther(await token.maxSupply()));
   console.log("Owner:       ", await token.owner());
   console.log("Paused:      ", await token.paused());
   console.log("Owner balance:", ethers.formatEther(await token.balanceOf(owner.address)));
@@ -39,6 +40,15 @@ async function main() {
     console.log("ERROR: non-owner mint should have failed!");
   } catch {
     console.log("Non-owner mint correctly rejected");
+  }
+
+  // Mint exceeding maxSupply should fail
+  try {
+    const excess = (await token.maxSupply()) - (await token.totalSupply()) + 1n;
+    await token.mint(addr1.address, excess);
+    console.log("ERROR: mint exceeding maxSupply should have failed!");
+  } catch {
+    console.log("Mint exceeding maxSupply correctly rejected");
   }
   console.log();
 
@@ -80,6 +90,14 @@ async function main() {
   const txAfter = await token.transfer(addr1.address, ethers.parseEther("10"));
   await txAfter.wait();
   console.log("Transfer after unpause succeeded");
+  console.log();
+
+  console.log("=== 6. Ownable2Step ===");
+  await token.transferOwnership(addr1.address);
+  console.log("Pending owner:", await token.pendingOwner());
+  console.log("Current owner:", await token.owner());
+  await token.connect(addr1).acceptOwnership();
+  console.log("Owner after accept:", await token.owner());
   console.log();
 
   console.log("=== All checks passed! ===");
