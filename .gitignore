@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.env
+*.local
+
+# Hardhat
+contracts/artifacts/
+contracts/cache/
+contracts/typechain-types/
+contracts/ignition/deployments/
+
+# Frontend
+frontend/dist/
+
+# OS
+.DS_Store
+Thumbs.db
